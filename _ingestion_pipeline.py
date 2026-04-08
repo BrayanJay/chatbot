@@ -9,7 +9,7 @@ load_dotenv()
 
 #Load all the files
 def load_documents(docs_path="assets"):
-    print(f"Loadning documents from {docs_path}...")
+    print(f"Loading documents from {docs_path}...")
 
     #check if assets directory exists
     if not os.path.exists(docs_path):
@@ -66,6 +66,26 @@ def split_documents(documents, chunk_size=1000, chunk_overlap=150):
 
     return chunks
 
+#To embedding and storing into vector db
+def create_vector_store(chunks, persist_directory="db/chroma_db"):
+    """Create and persist ChromaDB vectore store"""
+    print("Creating embeddings and storing in ChromaDB")
+
+    embedding_model = OpenAIEmbeddings(model="text-embedding-3-small")
+
+    #Create ChromeDB vector store
+    print("--- Creating vector store ---")
+    vectorstore = Chroma.from_documents(
+        documents=chunks,
+        embedding=embedding_model,
+        persist_directory=persist_directory,
+        collection_metadata={"hnsw:space": "cosine"}
+    )
+    print("--- Finished creating vector store ---")
+
+    print(f"Vector store created and saved to {persist_directory}")
+    return vectorstore
+
 def main():
     print("Main function")
 
@@ -74,6 +94,9 @@ def main():
 
     #2. Chunking the files
     chunks = split_documents(documents)
+
+    #3. Embedding and storing in Vector DB
+    vectorstore = create_vector_store(chunks)
 
 if __name__ == "__main__":
     main()
